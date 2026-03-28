@@ -136,6 +136,9 @@
         </div>
     </div>
 
+    <!-- Shared JS -->
+    <script src="../js/main.js"></script>
+
     <!-- Bootstrap JS -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -151,7 +154,7 @@
                 e.preventDefault()
 
                 if (!email.value.trim() || !password.value) {
-                    alert('Please fill in all fields')
+                    showToast('Please fill in all fields', 'warning')
                     return
                 }
 
@@ -170,12 +173,12 @@
                 }
 
                 if (!account) {
-                    alert('No account found with this email. Please sign up first.')
+                    showToast('No account found with this email. Please sign up first.', 'warning')
                     return
                 }
 
                 if (account.password !== password.value) {
-                    alert('Incorrect password. Please try again.')
+                    showToast('Incorrect password. Please try again.', 'error')
                     return
                 }
 
@@ -196,8 +199,10 @@
                     localStorage.removeItem('insideLAUTECH_rememberedEmail')
                 }
 
-                alert('Login successful! Welcome back.')
-                window.location.href = '../index.html'
+                showToast('Login successful! Welcome back.', 'success')
+                setTimeout(() => {
+                    window.location.href = '../index.html'
+                }, 1000)
             })
         })
     </script>

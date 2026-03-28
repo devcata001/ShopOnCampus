@@ -7,12 +7,12 @@ const signUp = (event) => {
     event.preventDefault()
 
     if (!fullname || !email || !password || !confirmPassword) {
-        alert('Form elements not found. Please refresh the page.')
+        showToast('Form elements not found. Please refresh the page.', 'error')
         return
     }
 
     if (fullname.value.trim() === '' || email.value.trim() === '' || password.value.trim() === '' || confirmPassword.value.trim() === '') {
-        alert('Please fill in all required fields.')
+        showToast('Please fill in all required fields.', 'warning')
         return
     }
 
@@ -20,22 +20,22 @@ const signUp = (event) => {
     const validEmail = emailPattern.test(email.value.trim())
 
     if (!validEmail) {
-        alert('Please enter a valid email address.')
+        showToast('Please enter a valid email address.', 'warning')
         return
     }
 
     if (password.value.length < 8) {
-        alert('Password must be at least 8 characters.')
+        showToast('Password must be at least 8 characters.', 'warning')
         return
     }
 
     if (password.value !== confirmPassword.value) {
-        alert('Passwords do not match.')
+        showToast('Passwords do not match.', 'warning')
         return
     }
 
     if (!terms.checked) {
-        alert('You must agree to the Terms & Conditions.')
+        showToast('You must agree to the Terms & Conditions.', 'warning')
         return
     }
 
@@ -56,14 +56,14 @@ const signUp = (event) => {
     }
 
     if (found) {
-        alert('An account with this email already exists.')
+        showToast('An account with this email already exists.', 'warning')
         return
     }
 
     allUsers.push(userObj)
     localStorage.setItem('insidelautechUsers', JSON.stringify(allUsers))
 
-    alert('Account created successfully! Please login.')
+    showToast('Account created successfully! Please login.', 'success')
 
     fullname.value = ''
     email.value = ''
@@ -73,7 +73,9 @@ const signUp = (event) => {
     confirmPassword.value = ''
     terms.checked = false
 
-    window.location.href = 'login.html'
+    setTimeout(() => {
+        window.location.href = 'login.html'
+    }, 1200)
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -9,38 +9,81 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/styles.css">
     <style>
+        .products-page {
+            background: #f8f9fb;
+            min-height: 100vh;
+        }
+
         .product-card {
             transition: transform 0.3s;
             cursor: pointer;
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
         }
 
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 14px 26px rgba(0, 0, 0, 0.12);
         }
 
         .filter-section {
-            background: #2c3e50;
+            background: #fff;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 90px;
         }
 
         .price-badge {
-            background: #27ae60;
-            color: white;
+            background: #f5efe0;
+            color: #7f642e;
+            border: 1px solid #d8c49b;
             padding: 5px 10px;
-            border-radius: 5px;
+            border-radius: 999px;
             font-weight: bold;
+        }
+
+        .filter-label {
+            color: #1a1d29;
+            font-weight: 600;
+        }
+
+        .products-toolbar {
+            background: #fff;
+            border: 1px solid rgba(26, 29, 41, 0.08);
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            padding: 0.85rem 1rem;
+            margin-bottom: 1.15rem;
+        }
+
+        .results-count {
+            color: #5f6b7a;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        @media (max-width: 767px) {
+            .filter-section {
+                position: static;
+                margin-bottom: 1.25rem;
+            }
+
+            .products-toolbar {
+                gap: 0.65rem;
+            }
         }
     </style>
 </head>
 
-<body>
+<body class="products-page">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="../index.html">
+            <a class="navbar-brand d-flex align-items-center" href="../index.html">
                 <img src="../assets/lautech.png" alt="LAUTECH Logo" height="40" class="me-2">
-                InsideLAUTECH
+                <span class="brand-text">InsideLAUTECH</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -67,13 +110,13 @@
         <div class="row">
             <div class="col-md-3">
                 <div class="filter-section">
-                    <h5 class="text-white mb-3">Filters</h5>
+                    <h5 class="mb-3">Filters</h5>
                     <div class="mb-3">
-                        <label class="text-white">Search</label>
+                        <label class="filter-label">Search</label>
                         <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
                     </div>
                     <div class="mb-3">
-                        <label class="text-white">Category</label>
+                        <label class="filter-label">Category</label>
                         <select id="categoryFilter" class="form-select">
                             <option value="all">All Categories</option>
                             <option value="textbooks">Textbooks</option>
@@ -83,7 +126,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="text-white">Price Range</label>
+                        <label class="filter-label">Price Range</label>
                         <select id="priceFilter" class="form-select">
                             <option value="all">All Prices</option>
                             <option value="0-5000">Under ₦5,000</option>
@@ -97,7 +140,21 @@
             </div>
 
             <div class="col-md-9">
-                <h2 class="text-white mb-4">All Products</h2>
+                <h2 class="text-dark mb-4">All Products</h2>
+                <div
+                    class="products-toolbar d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <p id="resultsCount" class="results-count">Showing 0 products</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="sortFilter" class="filter-label mb-0">Sort</label>
+                        <select id="sortFilter" class="form-select form-select-sm" style="min-width: 190px;">
+                            <option value="default">Featured</option>
+                            <option value="price-asc">Price: Low to High</option>
+                            <option value="price-desc">Price: High to Low</option>
+                            <option value="rating-desc">Rating: High to Low</option>
+                            <option value="name-asc">Name: A to Z</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="row g-4" id="productsGrid">
                     <!-- Products will be loaded here -->
                 </div>
@@ -108,17 +165,48 @@
     <script src="../js/main.js"></script>
     <script>
         let filteredProducts = [...products]
+        const sortFilterEl = document.getElementById('sortFilter')
+        const searchInputEl = document.getElementById('searchInput')
+        const categoryFilterEl = document.getElementById('categoryFilter')
+        const priceFilterEl = document.getElementById('priceFilter')
+
+        const updateResultsCount = (count) => {
+            const el = document.getElementById('resultsCount')
+            if (el) {
+                el.textContent = `Showing ${count} product${count === 1 ? '' : 's'}`
+            }
+        }
+
+        const sortProducts = (items) => {
+            const sortMode = sortFilterEl.value
+            const sorted = [...items]
+
+            if (sortMode === 'price-asc') {
+                sorted.sort((a, b) => a.price - b.price)
+            } else if (sortMode === 'price-desc') {
+                sorted.sort((a, b) => b.price - a.price)
+            } else if (sortMode === 'rating-desc') {
+                sorted.sort((a, b) => b.rating - a.rating)
+            } else if (sortMode === 'name-asc') {
+                sorted.sort((a, b) => a.name.localeCompare(b.name))
+            }
+
+            return sorted
+        }
 
         const renderProducts = (productsToRender) => {
             const grid = document.getElementById('productsGrid')
             if (productsToRender.length === 0) {
-                grid.innerHTML = '<div class="col-12"><p class="text-white text-center">No products found</p></div>'
+                updateResultsCount(0)
+                grid.innerHTML = '<div class="col-12"><p class="text-muted text-center">No products found</p></div>'
                 return
             }
 
+            updateResultsCount(productsToRender.length)
+
             grid.innerHTML = productsToRender.map(p => `
                 <div class="col-md-4">
-                    <div class="card product-card bg-dark text-white h-100" onclick="viewProduct(${p.id})">
+                    <div class="card product-card h-100" onclick="viewProduct(${p.id})">
                         <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/300x200?text=${p.name}'">
                         <div class="card-body">
                             <h5 class="card-title">${p.name}</h5>
@@ -139,9 +227,9 @@
         }
 
         const applyFilters = () => {
-            const search = searchInput.value.toLowerCase()
-            const category = categoryFilter.value
-            const priceRange = priceFilter.value
+            const search = searchInputEl.value.toLowerCase()
+            const category = categoryFilterEl.value
+            const priceRange = priceFilterEl.value
 
             filteredProducts = products.filter(p => {
                 const matchesSearch = p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search)
@@ -156,35 +244,25 @@
                 return matchesSearch && matchesCategory && matchesPrice
             })
 
-            renderProducts(filteredProducts)
+            renderProducts(sortProducts(filteredProducts))
         }
 
         const viewProduct = (id) => {
             window.location.href = `product-detail.html?id=${id}`
         }
 
-        searchInput.addEventListener('input', applyFilters)
+        searchInputEl.addEventListener('input', applyFilters)
+        sortFilterEl.addEventListener('change', applyFilters)
 
         const urlParams = new URLSearchParams(window.location.search)
         const categoryParam = urlParams.get('category')
         if (categoryParam) {
-            categoryFilter.value = categoryParam
+            categoryFilterEl.value = categoryParam
             applyFilters()
         } else {
             renderProducts(products)
         }
 
-        const navLinks = document.querySelectorAll('.navbar-nav .nav-link')
-        const navbarToggler = document.querySelector('.navbar-toggler')
-        const navbarCollapse = document.querySelector('.navbar-collapse')
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
-                    navbarToggler.click()
-                }
-            })
-        })
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

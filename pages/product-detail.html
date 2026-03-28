@@ -10,15 +10,16 @@
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f8f9fb;
             min-height: 100vh;
         }
 
         .product-detail-card {
             background: white;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            border: 0;
         }
 
         .detail-section {
@@ -27,12 +28,15 @@
 
         .related-card {
             background: white;
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
             transition: transform 0.3s;
         }
 
         .related-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 14px 26px rgba(0, 0, 0, 0.12);
         }
     </style>
 </head>
@@ -40,9 +44,9 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="../index.html">
+            <a class="navbar-brand d-flex align-items-center" href="../index.html">
                 <img src="../assets/lautech.png" alt="LAUTECH Logo" height="40" class="me-2">
-                InsideLAUTECH
+                <span class="brand-text">InsideLAUTECH</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -81,7 +85,7 @@
         </div>
 
         <div class="mt-5">
-            <h4 class="text-white mb-4"><i class="bi bi-grid"></i> Related Products</h4>
+            <h4 class="text-dark mb-4"><i class="bi bi-grid"></i> Related Products</h4>
             <div class="row g-4" id="relatedProducts">
                 <!-- Related products will load here -->
             </div>
@@ -166,7 +170,7 @@
                     `).join('')
                 } else {
                     document.getElementById('relatedProducts').innerHTML = `
-                        <div class="col-12 text-center text-white">
+                        <div class="col-12 text-center text-muted">
                             <p>No related products found</p>
                         </div>
                     `
@@ -190,21 +194,10 @@
                 for (let i = 0; i < qty; i++) {
                     addToCart(product)
                 }
-                alert(`Added ${qty} x ${product.name} to cart!`)
+                showToast(`Added ${qty} x ${product.name} to cart`, 'success')
             }
         }
 
-        const navLinks = document.querySelectorAll('.navbar-nav .nav-link')
-        const navbarToggler = document.querySelector('.navbar-toggler')
-        const navbarCollapse = document.querySelector('.navbar-collapse')
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
-                    navbarToggler.click()
-                }
-            })
-        })
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

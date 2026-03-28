@@ -3,6 +3,59 @@ if (localStorage.insidelautech_cart) {
     cart = JSON.parse(localStorage.getItem('insidelautech_cart'))
 }
 
+const PAYSTACK_PUBLIC_KEY = localStorage.getItem('insidelautech_paystack_test_key') || 'pk_test_f56cc9f27a927af6dadbc4653123594a385a3624'
+
+const ensureToastContainer = () => {
+    let container = document.getElementById('toastContainer')
+    if (!container) {
+        container = document.createElement('div')
+        container.id = 'toastContainer'
+        container.className = 'toast-container-custom'
+        document.body.appendChild(container)
+    }
+    return container
+}
+
+const showToast = (message, type = 'info') => {
+    const container = ensureToastContainer()
+    const toast = document.createElement('div')
+
+    const typeClassMap = {
+        success: 'toast-success',
+        error: 'toast-error',
+        warning: 'toast-warning',
+        info: 'toast-info'
+    }
+
+    const toastTypeClass = typeClassMap[type] || typeClassMap.info
+    toast.className = `toast-custom ${toastTypeClass}`
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button type="button" class="toast-close" aria-label="Close notification">&times;</button>
+    `
+
+    container.appendChild(toast)
+    requestAnimationFrame(() => {
+        toast.classList.add('show')
+    })
+
+    const removeToast = () => {
+        toast.classList.remove('show')
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast)
+            }
+        }, 250)
+    }
+
+    const closeButton = toast.querySelector('.toast-close')
+    if (closeButton) {
+        closeButton.addEventListener('click', removeToast)
+    }
+
+    setTimeout(removeToast, 3000)
+}
+
 const updateCartCount = () => {
     const cartCount = document.getElementById('cartCount')
     if (cartCount) {
@@ -17,7 +70,7 @@ const updateCartCount = () => {
 const addToCart = (product) => {
     const user = checkSession()
     if (!user) {
-        alert('Please login or sign up to add items to cart!')
+        showToast('Please login or sign up to add items to cart!', 'warning')
         if (window.location.pathname.includes('/pages/')) {
             window.location.href = 'login.html'
         } else {
@@ -42,6 +95,7 @@ const addToCart = (product) => {
             price: product.price,
             image: product.image,
             category: product.category,
+            description: product.description,
             quantity: 1
         }
         cart.push(newItem)
@@ -49,7 +103,7 @@ const addToCart = (product) => {
 
     localStorage.setItem('insidelautech_cart', JSON.stringify(cart))
     updateCartCount()
-    alert('Added to cart!')
+    showToast(`${product.name} added to cart`, 'success')
 }
 
 const removeFromCart = (productId) => {
@@ -99,7 +153,59 @@ const checkSession = () => {
 
 const logout = () => {
     localStorage.removeItem('insidelautech_session')
-    window.location.href = '../index.html'
+    if (window.location.pathname.includes('/pages/')) {
+        window.location.href = '../index.html'
+    } else {
+        window.location.href = 'index.html'
+    }
+}
+
+const payWithPaystack = ({ amount, email, reference, metadata, onSuccess, onCancel }) => {
+    if (!window.PaystackPop) {
+        showToast('Paystack script is not loaded on this page.', 'error')
+        return
+    }
+
+    if (!PAYSTACK_PUBLIC_KEY || PAYSTACK_PUBLIC_KEY.includes('xxxxxxxx')) {
+        showToast('Set your Paystack test public key before checkout.', 'warning')
+        return
+    }
+
+    const amountInKobo = Math.round(Number(amount) * 100)
+    if (!amountInKobo || amountInKobo <= 0) {
+        showToast('Invalid payment amount.', 'error')
+        return
+    }
+
+    const handler = window.PaystackPop.setup({
+        key: PAYSTACK_PUBLIC_KEY,
+        email,
+        amount: amountInKobo,
+        currency: 'NGN',
+        ref: reference || `INSIDE-${Date.now()}`,
+        metadata: metadata || {},
+        callback: (response) => {
+            if (onSuccess) {
+                onSuccess(response)
+            }
+        },
+        onClose: () => {
+            if (onCancel) {
+                onCancel()
+            }
+        }
+    })
+
+    handler.openIframe()
+}
+
+const setPaystackTestKey = (publicKey) => {
+    if (!publicKey || !publicKey.startsWith('pk_test_')) {
+        showToast('Use a valid Paystack test public key (pk_test_...)', 'warning')
+        return
+    }
+    localStorage.setItem('insidelautech_paystack_test_key', publicKey)
+    showToast('Paystack test key saved. Refresh to use it.', 'success')
 }
 
 const updateNav = () => {
@@ -123,6 +229,65 @@ const updateNav = () => {
     }
 }
 
+const highlightCurrentNavLink = () => {
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link[href]')
+    if (!navLinks.length) {
+        return
+    }
+
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html'
+
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href') || ''
+        const normalizedHref = href.split('?')[0].split('#')[0]
+        const targetPath = normalizedHref.split('/').pop()
+
+        if (!targetPath) {
+            return
+        }
+
+        const shouldBeActive = targetPath === currentPath ||
+            (currentPath === 'index.html' && (targetPath === 'index.html' || targetPath === ''))
+
+        if (shouldBeActive) {
+            link.classList.add('active')
+            link.setAttribute('aria-current', 'page')
+        }
+    })
+}
+
+const setupNavbarBehavior = () => {
+    const navbar = document.querySelector('.navbar')
+    if (!navbar) {
+        return
+    }
+
+    const handleNavbarScroll = () => {
+        if (window.scrollY > 10) {
+            navbar.classList.add('scrolled')
+        } else {
+            navbar.classList.remove('scrolled')
+        }
+    }
+
+    handleNavbarScroll()
+    window.addEventListener('scroll', handleNavbarScroll)
+
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link')
+    const navbarToggler = document.querySelector('.navbar-toggler')
+    const navbarCollapse = document.querySelector('.navbar-collapse')
+
+    if (navbarToggler && navbarCollapse && navLinks.length) {
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
+                    navbarToggler.click()
+                }
+            })
+        })
+    }
+}
+
 const products = [
     { id: 1, name: 'Calculus Textbook', category: 'textbooks', price: 3500, image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400', rating: 4.5, description: 'Engineering Mathematics by K.A. Stroud' },
     { id: 2, name: 'HP Laptop', category: 'electronics', price: 185000, image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400', rating: 4.8, description: 'HP Pavilion 15, 8GB RAM, 256GB SSD' },
@@ -139,6 +304,13 @@ const products = [
 ]
 
 document.addEventListener('DOMContentLoaded', () => {
+    ensureToastContainer()
     updateCartCount()
     updateNav()
+    highlightCurrentNavLink()
+    setupNavbarBehavior()
 })
+
+window.showToast = showToast
+window.payWithPaystack = payWithPaystack
+window.setPaystackTestKey = setPaystackTestKey
