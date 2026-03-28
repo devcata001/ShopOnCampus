@@ -123,6 +123,8 @@
                             <option value="electronics">Electronics</option>
                             <option value="fashion">Fashion</option>
                             <option value="stationery">Stationery</option>
+                            <option value="food">Food</option>
+                            <option value="room-essentials">Room Essentials</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -257,7 +259,11 @@
         const urlParams = new URLSearchParams(window.location.search)
         const categoryParam = urlParams.get('category')
         if (categoryParam) {
-            categoryFilterEl.value = categoryParam
+            const normalizedCategory = categoryParam.toLowerCase().replace(/\s+/g, '-').trim()
+            const hasCategoryOption = Array.from(categoryFilterEl.options).some(option => option.value === normalizedCategory)
+            if (hasCategoryOption) {
+                categoryFilterEl.value = normalizedCategory
+            }
             applyFilters()
         } else {
             renderProducts(products)

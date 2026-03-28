@@ -8,9 +8,124 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .dashboard-page {
+            background: #f8f9fb;
+            min-height: 100vh;
+        }
+
+        .dashboard-sidebar,
+        .dashboard-panel,
+        .dashboard-stat {
+            border: 0;
+            border-radius: 16px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+            background: #fff;
+        }
+
+        .dashboard-sidebar .avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5efe0 0%, #efe2c2 100%);
+            color: #7f642e;
+            margin-bottom: 0.85rem;
+        }
+
+        .dashboard-nav-btn {
+            border: 1px solid #e8ebf0;
+            background: #fff;
+            color: #1a1d29;
+            border-radius: 12px;
+            padding: 0.65rem 0.8rem;
+            text-align: left;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        .dashboard-nav-btn:hover {
+            border-color: #d7c291;
+            transform: translateX(3px);
+            color: #7f642e;
+        }
+
+        .dashboard-nav-btn.active {
+            border-color: rgba(192, 160, 98, 0.5);
+            background: rgba(192, 160, 98, 0.12);
+            color: #7f642e;
+        }
+
+        .dashboard-panel .form-control {
+            border-radius: 10px;
+            border: 1px solid #e4e9f0;
+            background: #f9fbfd;
+        }
+
+        .dashboard-stat {
+            overflow: hidden;
+        }
+
+        .dashboard-stat .card-body {
+            padding: 1.25rem;
+        }
+
+        .stat-title {
+            color: #5f6b7a;
+            font-size: 0.92rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1a1d29;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.primary {
+            background: rgba(13, 110, 253, 0.12);
+            color: #0d6efd;
+        }
+
+        .stat-icon.success {
+            background: rgba(25, 135, 84, 0.12);
+            color: #198754;
+        }
+
+        .stat-icon.warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #9d7400;
+        }
+
+        .favorites-card {
+            border: 1px solid rgba(26, 29, 41, 0.08);
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        @media (max-width: 767px) {
+            .dashboard-page .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+    </style>
 </head>
 
-<body>
+<body class="dashboard-page">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="../index.html">
@@ -46,20 +161,25 @@
     <div class="container my-5">
         <div class="row">
             <div class="col-md-3">
-                <div class="card bg-dark text-white">
+                <div class="card dashboard-sidebar">
                     <div class="card-body text-center">
-                        <i class="bi bi-person-circle fs-1 mb-3"></i>
-                        <h5 id="userName">User</h5>
-                        <p class="text-muted small" id="userEmail">email@example.com</p>
+                        <div class="avatar mx-auto">
+                            <i class="bi bi-person fs-3"></i>
+                        </div>
+                        <h5 id="userName" class="mb-1">User</h5>
+                        <p class="text-muted small mb-3" id="userEmail">email@example.com</p>
                         <hr>
                         <div class="d-grid gap-2">
-                            <button class="btn btn-outline-light active" onclick="showSection('profile')">
+                            <button class="dashboard-nav-btn active" data-section="profile"
+                                onclick="showSection('profile', this)">
                                 <i class="bi bi-person"></i> Profile
                             </button>
-                            <button class="btn btn-outline-light" onclick="showSection('orders')">
+                            <button class="dashboard-nav-btn" data-section="orders"
+                                onclick="showSection('orders', this)">
                                 <i class="bi bi-bag"></i> Orders
                             </button>
-                            <button class="btn btn-outline-light" onclick="showSection('favorites')">
+                            <button class="dashboard-nav-btn" data-section="favorites"
+                                onclick="showSection('favorites', this)">
                                 <i class="bi bi-heart"></i> Favorites
                             </button>
                         </div>
@@ -70,7 +190,7 @@
             <div class="col-md-9">
                 <!-- Profile Section -->
                 <div id="profileSection" class="section-content">
-                    <div class="card bg-dark text-white">
+                    <div class="card dashboard-panel">
                         <div class="card-body">
                             <h4 class="mb-4"><i class="bi bi-person-circle"></i> Profile Information</h4>
                             <div class="row mb-3">
@@ -101,29 +221,35 @@
 
                     <div class="row mt-4">
                         <div class="col-md-4">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body text-center">
-                                    <h2><i class="bi bi-bag-check"></i></h2>
-                                    <h3 id="totalOrders">0</h3>
-                                    <p>Total Orders</p>
+                            <div class="card dashboard-stat">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="stat-title">Total Orders</p>
+                                        <p id="totalOrders" class="stat-value">0</p>
+                                    </div>
+                                    <span class="stat-icon primary"><i class="bi bi-bag-check"></i></span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card bg-success text-white">
-                                <div class="card-body text-center">
-                                    <h2><i class="bi bi-heart"></i></h2>
-                                    <h3 id="totalFavorites">0</h3>
-                                    <p>Favorites</p>
+                            <div class="card dashboard-stat">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="stat-title">Favorites</p>
+                                        <p id="totalFavorites" class="stat-value">0</p>
+                                    </div>
+                                    <span class="stat-icon success"><i class="bi bi-heart"></i></span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card bg-warning text-white">
-                                <div class="card-body text-center">
-                                    <h2><i class="bi bi-star"></i></h2>
-                                    <h3>4.8</h3>
-                                    <p>Your Rating</p>
+                            <div class="card dashboard-stat">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="stat-title">Your Rating</p>
+                                        <p class="stat-value">4.8</p>
+                                    </div>
+                                    <span class="stat-icon warning"><i class="bi bi-star"></i></span>
                                 </div>
                             </div>
                         </div>
@@ -132,7 +258,7 @@
 
                 <!-- Orders Section -->
                 <div id="ordersSection" class="section-content" style="display: none;">
-                    <div class="card bg-dark text-white">
+                    <div class="card dashboard-panel">
                         <div class="card-body">
                             <h4 class="mb-4"><i class="bi bi-bag"></i> My Orders</h4>
                             <div class="text-center py-5">
@@ -146,7 +272,7 @@
 
                 <!-- Favorites Section -->
                 <div id="favoritesSection" class="section-content" style="display: none;">
-                    <div class="card bg-dark text-white">
+                    <div class="card dashboard-panel">
                         <div class="card-body">
                             <h4 class="mb-4"><i class="bi bi-heart"></i> My Favorites</h4>
                             <div class="row g-3" id="favoritesGrid">
@@ -182,7 +308,7 @@
         document.getElementById('totalFavorites').textContent = favorites.length
         document.getElementById('favoritesGrid').innerHTML = favorites.map(p => `
             <div class="col-md-4">
-                <div class="card bg-secondary text-white h-100">
+                <div class="card favorites-card h-100">
                     <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 150px; object-fit: cover;"
                             onerror="this.src='https://via.placeholder.com/300x150?text=${p.name}'">
                     <div class="card-body">
@@ -198,7 +324,7 @@
 
         const showSection = (section) => {
             document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none')
-            document.querySelectorAll('.btn-outline-light').forEach(b => b.classList.remove('active'))
+            document.querySelectorAll('.dashboard-nav-btn').forEach(b => b.classList.remove('active'))
 
             if (section === 'profile') {
                 document.getElementById('profileSection').style.display = 'block'
@@ -208,7 +334,10 @@
                 document.getElementById('favoritesSection').style.display = 'block'
             }
 
-            event.target.classList.add('active')
+            const activeBtn = document.querySelector(`.dashboard-nav-btn[data-section="${section}"]`)
+            if (activeBtn) {
+                activeBtn.classList.add('active')
+            }
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
