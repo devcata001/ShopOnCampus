@@ -220,7 +220,7 @@
                 grid.innerHTML = productsToRender.map(p => `
                 <div class="col-md-4">
                     <div class="card product-card h-100" data-product-id="${p.id}">
-                        <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;" data-fallback-label="Product" data-fallback-width="300" data-fallback-height="200">
+                        <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 220px; object-fit: contain; background: #fff;" data-fallback-label="Product" data-fallback-width="300" data-fallback-height="200">
                         <div class="card-body">
                             <h5 class="card-title">${p.name}</h5>
                             <p class="card-text text-muted small">${p.description}</p>

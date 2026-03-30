@@ -346,6 +346,22 @@ const setupNavbarBehavior = () => {
 
 const products = Array.isArray(window.INSIDE_PRODUCTS) ? window.INSIDE_PRODUCTS : []
 
+const enhanceProductImageUrl = (url) => {
+    if (!url || typeof url !== 'string') {
+        return url
+    }
+
+    if (url.includes('i.pinimg.com/236x/')) {
+        return url.replace('i.pinimg.com/236x/', 'i.pinimg.com/736x/')
+    }
+
+    return url
+}
+
+for (let i = 0; i < products.length; i++) {
+    products[i].image = enhanceProductImageUrl(products[i].image)
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const activeUser = checkSession()
     const currentPath = window.location.pathname.split('/').pop() || 'index.html'

@@ -131,7 +131,7 @@
                     document.getElementById('productDetail').innerHTML = `
                     <div class="col-md-6">
                         <img src="${product.image}" class="img-fluid w-100" alt="${product.name}" 
-                             style="height: 500px; object-fit: cover;" data-fallback-label="Product" data-fallback-width="700" data-fallback-height="500">
+                                style="height: 500px; object-fit: contain; background: #fff;" data-fallback-label="Product" data-fallback-width="700" data-fallback-height="500">
                     </div>
                     <div class="col-md-6 detail-section">
                         <h2 class="mb-3">${product.name}</h2>
@@ -171,7 +171,7 @@
                         document.getElementById('relatedProducts').innerHTML = related.map(p => `
                         <div class="col-md-4">
                             <div class="card related-card h-100" data-related-id="${p.id}" style="cursor: pointer;">
-                                <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;" data-fallback-label="Product" data-fallback-width="300" data-fallback-height="200">
+                                <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 220px; object-fit: contain; background: #fff;" data-fallback-label="Product" data-fallback-width="300" data-fallback-height="200">
                                 <div class="card-body">
                                     <h6 class="card-title">${p.name}</h6>
                                     <p class="text-success fw-bold mb-2">₦${p.price.toLocaleString()}</p>
