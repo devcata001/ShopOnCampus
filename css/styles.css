@@ -127,25 +127,22 @@ html {
 }
 
 #cartCount {
-    background-color: var(--lautech-gold) !important;
-    color: var(--lautech-dark) !important;
+    background-color: #dc3545 !important;
+    color: #fff !important;
     border-radius: 999px;
     font-size: 0.72rem;
-    padding: 0.35rem 0.45rem;
-    margin-left: 0.3rem;
-    box-shadow: 0 4px 10px rgba(192, 160, 98, 0.35);
-}
-
-.logout-nav-link {
-    color: var(--lautech-gold) !important;
-    border: 1px solid rgba(192, 160, 98, 0.45);
-    background-color: rgba(192, 160, 98, 0.12);
-}
-
-.logout-nav-link:hover {
-    color: #fff !important;
-    background-color: rgba(192, 160, 98, 0.35);
-    border-color: rgba(192, 160, 98, 0.6);
+    padding: 0.28rem 0.42rem;
+    margin-left: 0.4rem;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.35);
 }
 
 .btn-signup {
