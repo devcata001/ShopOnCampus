@@ -345,6 +345,7 @@ const setupNavbarBehavior = () => {
 }
 
 const products = Array.isArray(window.INSIDE_PRODUCTS) ? window.INSIDE_PRODUCTS : []
+const priceOverridePayload = window.INSIDE_PRICE_OVERRIDES || null
 
 const enhanceProductImageUrl = (url) => {
     if (!url || typeof url !== 'string') {
@@ -360,6 +361,16 @@ const enhanceProductImageUrl = (url) => {
 
 for (let i = 0; i < products.length; i++) {
     products[i].image = enhanceProductImageUrl(products[i].image)
+}
+
+if (priceOverridePayload && priceOverridePayload.overrides) {
+    for (let i = 0; i < products.length; i++) {
+        const overrideValue = priceOverridePayload.overrides[String(products[i].id)]
+        const numericOverride = Number(overrideValue)
+        if (Number.isFinite(numericOverride) && numericOverride > 0) {
+            products[i].price = Math.round(numericOverride)
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
