@@ -17,26 +17,23 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    height: 100vh;
+    min-height: 100vh;
     overflow-x: hidden;
+    background: #f6f7fb;
 }
 
 /* Auth Container */
 .auth-container {
     display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 100vh;
+    padding: 1.25rem;
 }
 
 /* Left Side - Branding */
 .auth-branding {
-    flex: 1;
-    background: linear-gradient(135deg, var(--lautech-gold) 0%, #8b7045 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    position: relative;
-    overflow: hidden;
+    display: none;
 }
 
 .auth-branding::before {
@@ -136,18 +133,23 @@ body {
 
 /* Right Side - Form Section */
 .auth-form-section {
-    flex: 1;
+    width: 100%;
+    max-width: 520px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
-    background-color: white;
-    overflow-y: auto;
+    padding: 0;
+    background-color: transparent;
 }
 
 .auth-form-container {
     width: 100%;
-    max-width: 500px;
+    max-width: 520px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 12px 30px rgba(26, 29, 41, 0.08);
     animation: fadeIn 0.8s ease-out;
 }
 
@@ -197,6 +199,28 @@ body {
     margin-bottom: 2rem;
 }
 
+.auth-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(192, 160, 98, 0.14);
+    color: #7f642e;
+    border: 1px solid rgba(192, 160, 98, 0.42);
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.auth-logo {
+    height: 52px;
+    margin-right: 0;
+    filter: none;
+    animation: none;
+}
+
 /* Form Styles */
 .auth-form {
     margin-top: 2rem;
@@ -242,6 +266,88 @@ body {
     border-radius: 10px;
     font-size: 1rem;
     transition: all 0.3s ease;
+}
+
+.form-control.with-toggle {
+    padding-right: 3rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: #6c757d;
+    z-index: 12;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    color: var(--lautech-gold);
+}
+
+.password-strength {
+    margin-top: 0.7rem;
+}
+
+.password-strength-track {
+    width: 100%;
+    height: 7px;
+    background: #e9ecef;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.password-strength-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    transition: width 0.25s ease;
+}
+
+.password-rules {
+    list-style: none;
+    padding-left: 0;
+    margin: 0.6rem 0 0;
+}
+
+.password-rules li {
+    font-size: 0.83rem;
+    margin-bottom: 0.2rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.password-rules li.rule-valid {
+    color: #198754;
+}
+
+.auth-helper {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.88rem;
+    color: #5a6470;
+}
+
+.attempt-hint {
+    display: none;
+    margin-top: 0.7rem;
+    font-size: 0.86rem;
+    color: #8b7045;
+}
+
+.attempt-hint.show {
+    display: block;
 }
 
 .form-control:focus {
@@ -405,63 +511,17 @@ body {
 /* Responsive Design */
 @media (max-width: 992px) {
     .auth-container {
-        flex-direction: column;
-    }
-
-    .auth-branding {
-        min-height: 40vh;
-        padding: 2rem;
-    }
-
-    .welcome-text {
-        font-size: 2rem;
-    }
-
-    .brand-name {
-        font-size: 2rem;
-    }
-
-    .auth-logo {
-        height: 50px;
-    }
-
-    .feature-list {
-        display: none;
-    }
-
-    .auth-form-section {
-        padding: 2rem 1rem;
+        padding: 1rem;
     }
 }
 
 @media (max-width: 576px) {
-    .auth-branding {
-        min-height: 30vh;
-        padding: 1.5rem;
-    }
-
-    .welcome-text {
-        font-size: 1.5rem;
-    }
-
-    .brand-name {
-        font-size: 1.5rem;
-    }
-
-    .auth-logo {
-        height: 40px;
-    }
-
-    .welcome-subtitle {
-        font-size: 1rem;
-    }
-
     .form-title {
         font-size: 1.5rem;
     }
 
     .auth-form-container {
-        padding: 1rem;
+        padding: 1.25rem;
     }
 
     .form-control {

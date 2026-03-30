@@ -3,10 +3,47 @@ if (localStorage.insidelautechUsers) {
     allUsers = JSON.parse(localStorage.getItem('insidelautechUsers'))
 }
 
+const updateConfirmPasswordHint = (passwordInput, confirmPasswordInput, hintElement) => {
+    if (!passwordInput || !confirmPasswordInput || !hintElement) {
+        return
+    }
+
+    if (!confirmPasswordInput.value) {
+        hintElement.textContent = 'Re-enter your password exactly.'
+        hintElement.style.color = '#6c757d'
+        return
+    }
+
+    if (passwordInput.value === confirmPasswordInput.value) {
+        hintElement.textContent = 'Passwords match.'
+        hintElement.style.color = '#198754'
+    } else {
+        hintElement.textContent = 'Passwords do not match yet.'
+        hintElement.style.color = '#dc3545'
+    }
+}
+
+const setupPasswordVisibilityToggles = () => {
+    const toggleButtons = document.querySelectorAll('.password-toggle')
+    toggleButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target')
+            const input = document.getElementById(targetId)
+            if (!input) {
+                return
+            }
+
+            const isPassword = input.type === 'password'
+            input.type = isPassword ? 'text' : 'password'
+            btn.innerHTML = isPassword ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>'
+        })
+    })
+}
+
 const signUp = (event, formElements) => {
     event.preventDefault()
 
-    const { fullname, email, phone, matric, password, confirmPassword, terms } = formElements
+    const { fullname, email, phone, password, confirmPassword, terms } = formElements
 
     if (!fullname || !email || !password || !confirmPassword) {
         showToast('Form elements not found. Please refresh the page.', 'error')
@@ -18,16 +55,29 @@ const signUp = (event, formElements) => {
         return
     }
 
+    const normalizedEmail = email.value.trim().toLowerCase()
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    const validEmail = emailPattern.test(email.value.trim())
+    const validEmail = emailPattern.test(normalizedEmail)
 
     if (!validEmail) {
         showToast('Please enter a valid email address.', 'warning')
         return
     }
 
-    if (password.value.length < 8) {
-        showToast('Password must be at least 8 characters.', 'warning')
+    if (!normalizedEmail.endsWith('.com')) {
+        showToast('Please use a .com email address (school domains are not allowed).', 'warning')
+        return
+    }
+
+    const normalizedPhone = phone.value.trim()
+    if (!/^\+?\d{10,15}$/.test(normalizedPhone.replace(/\s+/g, ''))) {
+        showToast('Enter a valid phone number (10-15 digits).', 'warning')
+        return
+    }
+
+    const hasStrongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password.value)
+    if (!hasStrongPassword) {
+        showToast('Use a stronger password with upper/lowercase letters and a number.', 'warning')
         return
     }
 
@@ -43,22 +93,24 @@ const signUp = (event, formElements) => {
 
     const userObj = {
         name: fullname.value.trim(),
-        email: email.value.trim().toLowerCase(),
-        phone: phone.value.trim(),
-        matric: matric.value.trim(),
-        password: password.value
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        password: password.value,
+        createdAt: new Date().toISOString()
     }
 
     let found = false
     for (let i = 0; i < allUsers.length; i++) {
-        if ((allUsers[i].email || '').trim().toLowerCase() === userObj.email) {
+        const existingEmail = (allUsers[i].email || '').trim().toLowerCase()
+
+        if (existingEmail === userObj.email) {
             found = true
             break
         }
     }
 
     if (found) {
-        showToast('An account with this email already exists.', 'warning')
+        showToast('An account already exists with this email.', 'warning')
         return
     }
 
@@ -70,7 +122,6 @@ const signUp = (event, formElements) => {
     fullname.value = ''
     email.value = ''
     phone.value = ''
-    matric.value = ''
     password.value = ''
     confirmPassword.value = ''
     terms.checked = false
@@ -81,16 +132,38 @@ const signUp = (event, formElements) => {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const activeSession = checkSession()
+    if (activeSession) {
+        window.location.href = 'dashboard.html'
+        return
+    }
+
     const form = document.querySelector('form.auth-form')
     const formElements = {
         fullname: document.getElementById('fullname'),
         email: document.getElementById('email'),
         phone: document.getElementById('phone'),
-        matric: document.getElementById('matric'),
         password: document.getElementById('password'),
         confirmPassword: document.getElementById('confirmPassword'),
         terms: document.getElementById('terms')
     }
+    const confirmPasswordHint = document.getElementById('confirmPasswordHint')
+
+    setupPasswordVisibilityToggles()
+
+    if (formElements.password) {
+        formElements.password.addEventListener('input', () => {
+            updateConfirmPasswordHint(formElements.password, formElements.confirmPassword, confirmPasswordHint)
+        })
+    }
+
+    if (formElements.confirmPassword) {
+        formElements.confirmPassword.addEventListener('input', () => {
+            updateConfirmPasswordHint(formElements.password, formElements.confirmPassword, confirmPasswordHint)
+        })
+    }
+
+    updateConfirmPasswordHint(formElements.password, formElements.confirmPassword, confirmPasswordHint)
 
     if (form) {
         form.addEventListener('submit', (event) => signUp(event, formElements))

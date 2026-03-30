@@ -125,77 +125,13 @@
         </div>
     </section>
 
-    <!-- Featured Products Section -->
+    <!-- Products CTA Section -->
     <section id="products" class="py-5 bg-light">
         <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="display-5 fw-bold">Featured Products</h2>
-                <p class="text-muted">Popular items among LAUTECH students</p>
-            </div>
-            <div class="row g-4">
-                <!-- Product 1 -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card product-card h-100 card-hover">
-                        <img src="https://imgs.search.brave.com/1uolTsfGVNz56f_VyZ7LXpo_xweRPEzhWxUFpCVrj64/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdG9y/ZS5kb3ZlcnB1Ymxp/Y2F0aW9ucy5jb20v/Y2RuL3Nob3AvcHJv/ZHVjdHMvOTc4MDQ4/NjQ2ODU1Nl80MDB4/LmpwZz92PTE3MTAy/MDcwMjc"
-                            class="card-img-top" alt="Engineering Mathematics">
-                        <div class="card-body">
-                            <h5 class="card-title">Engineering Mathematics</h5>
-                            <p class="card-text text-dark">Essential textbook for engineering students</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="price">₦20,500</span>
-                                <button class="btn btn-primary btn-sm">Add to Cart</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 2 -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card product-card h-100 card-hover">
-                        <img src="https://imgs.search.brave.com/I3mPmNVUunLlwInHTT0vaBRsR-QVn4uy86Ms4RIObyA/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2ZlL2Y3/L2IzL2ZlZjdiM2Ni/YWViNTlhZmM5NzRh/YjA0ZGQyMDc0MWU2/LmpwZw"
-                            class="card-img-top" alt="Student Laptop">
-                        <div class="card-body">
-                            <h5 class="card-title">Student Laptop</h5>
-                            <p class="card-text text-dark">Perfect for research and assignments</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="price">₦350,000</span>
-                                <button class="btn btn-primary btn-sm">Add to Cart</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 3 -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card product-card h-100 card-hover">
-                        <img src="https://imgs.search.brave.com/jl3t-5UbVtzOH8elr_Rmyj5s50EUJys-SLPzH0vxzco/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9raWtp/Zm9vZGllcy5jb20v/d3AtY29udGVudC91/cGxvYWRzLzIwMjQv/MTEvRVQ1QjcwMzct/NC0xMDI0eDU3Ni5q/cGc"
-                            class="card-img-top" alt="Jollof Rice Combo">
-                        <div class="card-body">
-                            <h5 class="card-title">Jollof Rice Combo</h5>
-                            <p class="card-text text-dark">Fresh meal delivered to your hostel</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="price">₦1,200</span>
-                                <button class="btn btn-primary btn-sm order-btn">Order Now</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product 4 -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="card product-card h-100 card-hover">
-                        <img src="https://imgs.search.brave.com/ZbY1kwKsVMsYe8cDReE9HVrhfu9FHi04mQE5Hk9vVOU/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzE2LzYzLzA0Lzk5/LzM2MF9GXzE2NjMw/NDk5MDBfT2RRRjFu/RkF4cUZVTWQ1aFZz/NTlqRVdhdGp0M0I1/MmouanBn"
-                            class="card-img-top" alt="LAUTECH Hoodie">
-                        <div class="card-body">
-                            <h5 class="card-title">LAUTECH Hoodie</h5>
-                            <p class="card-text text-dark">Official university merchandise</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="price">₦4,500</span>
-                                <button class="btn btn-primary btn-sm">Add to Cart</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="text-center">
+                <h2 class="display-5 fw-bold">Products</h2>
+                <p class="text-muted mb-4">Browse the full catalog from the dedicated products page.</p>
+                <a href="pages/products.html" class="btn btn-primary btn-lg">View All Products</a>
             </div>
         </div>
     </section>
@@ -238,25 +174,6 @@
             </div>
         </div>
     </section>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const addToCartButtons = document.querySelectorAll('#products .btn-primary')
-            addToCartButtons.forEach((btn, index) => {
-                if (!btn.classList.contains('order-btn')) {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault()
-                        window.location.href = 'pages/products.html'
-                    })
-                } else {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault()
-                        showToast('Order feature coming soon!', 'info')
-                    })
-                }
-            })
-        })
-    </script>
 
     <!-- Tutorial Section -->
     <section id="tutorials" class="py-5">
@@ -423,7 +340,7 @@
             </div>
             <hr class="footer-divider">
             <div class="text-center">
-                <p class="footer-bottom mb-0">© 2025 InsideLAUTECH. All rights reserved.</p>
+                <p class="footer-bottom mb-0">© 2026 InsideLAUTECH. All rights reserved.</p>
             </div>
         </div>
     </footer>

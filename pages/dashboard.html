@@ -208,10 +208,6 @@
                                     <label class="form-label">Phone</label>
                                     <input type="text" class="form-control" id="profilePhone" readonly>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Matric Number</label>
-                                    <input type="text" class="form-control" id="profileMatric" readonly>
-                                </div>
                             </div>
                             <div class="alert alert-info" id="memberSince">
                                 <i class="bi bi-info-circle"></i> Member since
@@ -298,7 +294,6 @@
         document.getElementById('profileName').value = user.name
         document.getElementById('profileEmail').value = user.email
         document.getElementById('profilePhone').value = user.phone || 'Not provided'
-        document.getElementById('profileMatric').value = user.matric || 'Not provided'
 
         document.getElementById('memberSince').innerHTML = `
             <i class="bi bi-info-circle"></i> Member since ${new Date().toLocaleDateString()}

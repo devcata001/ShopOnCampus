@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - InsideLAUTECH</title>
+    <title>Create Account - InsideLAUTECH</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,45 +19,15 @@
 <body>
 
     <div class="auth-container">
-        <!-- Left Side - Branding -->
-        <div class="auth-branding">
-            <div class="branding-content">
-                <div class="logo-section mb-4">
-                    <img src="../assets/lautech.png" alt="LAUTECH Logo" class="auth-logo">
-                    <h1 class="brand-name">InsideLAUTECH</h1>
-                </div>
-                <h2 class="welcome-text">Join InsideLAUTECH Today!</h2>
-                <p class="welcome-subtitle">Start your seamless campus shopping experience</p>
-                <div class="feature-list mt-5">
-                    <div class="feature-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Exclusive Student Deals</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>24/7 Customer Support</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Track Your Orders</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Easy Returns & Refunds</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Side - Sign Up Form -->
         <div class="auth-form-section">
             <div class="auth-form-container">
                 <div class="text-center mb-4">
+                    <img src="../assets/lautech.png" alt="LAUTECH Logo" class="auth-logo mb-3">
                     <h2 class="form-title">Create Account</h2>
-                    <p class="form-subtitle">Fill in your details to get started</p>
+                    <p class="form-subtitle">Create your InsideLAUTECH account</p>
                 </div>
 
-                <form class="auth-form">
+                <form id="signupForm" class="auth-form">
                     <!-- Full Name Input -->
                     <div class="form-group mb-3">
                         <label for="fullname" class="form-label">Full Name</label>
@@ -66,7 +36,7 @@
                                 <i class="bi bi-person"></i>
                             </span>
                             <input type="text" class="form-control" id="fullname" placeholder="Enter your full name"
-                                required>
+                                autocomplete="name" required>
                         </div>
                     </div>
 
@@ -77,8 +47,8 @@
                             <span class="input-icon">
                                 <i class="bi bi-envelope"></i>
                             </span>
-                            <input type="email" class="form-control" id="email"
-                                placeholder="yourname@student.lautech.edu.ng" required>
+                            <input type="email" class="form-control" id="email" placeholder="yourname@gmail.com"
+                                autocomplete="email" required>
                         </div>
                     </div>
 
@@ -93,17 +63,6 @@
                         </div>
                     </div>
 
-                    <!-- Matric Number Input -->
-                    <div class="form-group mb-3">
-                        <label for="matric" class="form-label">Matric Number</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="bi bi-card-text"></i>
-                            </span>
-                            <input type="text" class="form-control" id="matric" placeholder="LAU/20/1234" required>
-                        </div>
-                    </div>
-
                     <!-- Password Input -->
                     <div class="form-group mb-3">
                         <label for="password" class="form-label">Password</label>
@@ -111,10 +70,15 @@
                             <span class="input-icon">
                                 <i class="bi bi-lock"></i>
                             </span>
-                            <input type="password" class="form-control" id="password"
-                                placeholder="Create a strong password" required>
+                            <input type="password" class="form-control with-toggle" id="password"
+                                placeholder="Create a strong password" autocomplete="new-password" required>
+                            <button class="password-toggle" type="button" data-target="password"
+                                aria-label="Show password">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
-                        <small class="form-text text-muted">Must be at least 8 characters</small>
+                        <small class="form-text text-muted">Use 8+ characters with uppercase, lowercase, and a
+                            number.</small>
                     </div>
 
                     <!-- Confirm Password Input -->
@@ -124,9 +88,15 @@
                             <span class="input-icon">
                                 <i class="bi bi-lock-fill"></i>
                             </span>
-                            <input type="password" class="form-control" id="confirmPassword"
-                                placeholder="Confirm your password" required>
+                            <input type="password" class="form-control with-toggle" id="confirmPassword"
+                                placeholder="Confirm your password" autocomplete="new-password" required>
+                            <button class="password-toggle" type="button" data-target="confirmPassword"
+                                aria-label="Show confirm password">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
+                        <small class="form-text text-muted" id="confirmPasswordHint">Re-enter your password
+                            exactly.</small>
                     </div>
 
                     <!-- Terms & Conditions -->
@@ -139,27 +109,10 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="btn btn-auth w-100 mb-3" href="index.html">
+                    <button type="submit" class="btn btn-auth w-100 mb-3">
                         Create Account
                         <i class="bi bi-arrow-right ms-2"></i>
                     </button>
-
-                    <!-- Divider -->
-                    <div class="divider">
-                        <span>OR</span>
-                    </div>
-
-                    <!-- Social Sign Up -->
-                    <div class="social-login">
-                        <button type="button" class="btn btn-social btn-google">
-                            <i class="bi bi-google me-2"></i>
-                            Sign up with Google
-                        </button>
-                        <button type="button" class="btn btn-social btn-facebook">
-                            <i class="bi bi-facebook me-2"></i>
-                            Sign up with Facebook
-                        </button>
-                    </div>
 
                     <!-- Sign In Link -->
                     <div class="text-center mt-4">
