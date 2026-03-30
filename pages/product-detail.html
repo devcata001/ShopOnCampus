@@ -97,14 +97,25 @@
 
     <script src="../js/main.js"></script>
     <script>
-        const urlParams = new URLSearchParams(window.location.search)
-        const productId = parseInt(urlParams.get('id'))
+        (() => {
+            const activeUser = checkSession()
+            if (!activeUser) {
+                showToast('Please sign up or login to view product details.', 'warning')
+                const nextTarget = `product-detail.html${window.location.search || ''}`
+                setTimeout(() => {
+                    window.location.href = 'login.html?next=' + encodeURIComponent(nextTarget)
+                }, 900)
+                return
+            }
 
-        console.log('Product ID:', productId)
-        console.log('Products array:', products)
+            const urlParams = new URLSearchParams(window.location.search)
+            const productId = parseInt(urlParams.get('id'))
 
-        if (!productId || isNaN(productId)) {
-            document.getElementById('productDetail').innerHTML = `
+            console.log('Product ID:', productId)
+            console.log('Products array:', products)
+
+            if (!productId || isNaN(productId)) {
+                document.getElementById('productDetail').innerHTML = `
                 <div class="col-12 text-center p-5">
                     <i class="bi bi-exclamation-triangle fs-1 text-warning mb-3"></i>
                     <h3>No product selected</h3>
@@ -112,14 +123,14 @@
                     <a href="products.html" class="btn btn-primary mt-3">Browse Products</a>
                 </div>
             `
-        } else {
-            const product = products.find(p => p.id === productId)
-            console.log('Found product:', product)
+            } else {
+                const product = products.find(p => p.id === productId)
+                console.log('Found product:', product)
 
-            if (product) {
-                document.title = `${product.name} - InsideLAUTECH`
+                if (product) {
+                    document.title = `${product.name} - InsideLAUTECH`
 
-                document.getElementById('productDetail').innerHTML = `
+                    document.getElementById('productDetail').innerHTML = `
                     <div class="col-md-6">
                         <img src="${product.image}" class="img-fluid w-100" alt="${product.name}" 
                              style="height: 500px; object-fit: cover;">
@@ -157,9 +168,9 @@
                     </div>
                 `
 
-                const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3)
-                if (related.length > 0) {
-                    document.getElementById('relatedProducts').innerHTML = related.map(p => `
+                    const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3)
+                    if (related.length > 0) {
+                        document.getElementById('relatedProducts').innerHTML = related.map(p => `
                         <div class="col-md-4">
                             <div class="card related-card h-100" onclick="window.location.href='product-detail.html?id=${p.id}'" style="cursor: pointer;">
                                 <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;">
@@ -171,15 +182,15 @@
                             </div>
                         </div>
                     `).join('')
-                } else {
-                    document.getElementById('relatedProducts').innerHTML = `
+                    } else {
+                        document.getElementById('relatedProducts').innerHTML = `
                         <div class="col-12 text-center text-muted">
                             <p>No related products found</p>
                         </div>
                     `
-                }
-            } else {
-                document.getElementById('productDetail').innerHTML = `
+                    }
+                } else {
+                    document.getElementById('productDetail').innerHTML = `
                     <div class="col-12 text-center p-5">
                         <i class="bi bi-search fs-1 text-danger mb-3"></i>
                         <h3>Product not found</h3>
@@ -187,19 +198,22 @@
                         <a href="products.html" class="btn btn-primary mt-3">Browse Products</a>
                     </div>
                 `
-            }
-        }
-
-        const addProductToCart = () => {
-            const qty = parseInt(document.getElementById('quantity').value) || 1
-            const product = products.find(p => p.id === productId)
-            if (product) {
-                for (let i = 0; i < qty; i++) {
-                    addToCart(product)
                 }
-                showToast(`Added ${qty} x ${product.name} to cart`, 'success')
             }
-        }
+
+            const addProductToCart = () => {
+                const qty = parseInt(document.getElementById('quantity').value) || 1
+                const product = products.find(p => p.id === productId)
+                if (product) {
+                    for (let i = 0; i < qty; i++) {
+                        addToCart(product)
+                    }
+                    showToast(`Added ${qty} x ${product.name} to cart`, 'success')
+                }
+            }
+
+            window.addProductToCart = addProductToCart
+        })()
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
