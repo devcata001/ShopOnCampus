@@ -219,8 +219,8 @@
 
                 grid.innerHTML = productsToRender.map(p => `
                 <div class="col-md-4">
-                    <div class="card product-card h-100" onclick="viewProduct(${p.id})">
-                        <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;" onerror="this.src=getFallbackImage('Product', 300, 200)">
+                    <div class="card product-card h-100" data-product-id="${p.id}">
+                        <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;" data-fallback-label="Product" data-fallback-width="300" data-fallback-height="200">
                         <div class="card-body">
                             <h5 class="card-title">${p.name}</h5>
                             <p class="card-text text-muted small">${p.description}</p>
@@ -230,13 +230,23 @@
                                     ${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5 - Math.floor(p.rating))}
                                 </span>
                             </div>
-                            <button onclick="event.stopPropagation(); addToCart(products.find(pr => pr.id === ${p.id}))" class="btn btn-primary w-100 mt-3">
+                            <button class="btn btn-primary w-100 mt-3 add-to-cart-btn" data-product-id="${p.id}">
                                 <i class="bi bi-cart-plus"></i> Add to Cart
                             </button>
                         </div>
                     </div>
                 </div>
             `).join('')
+
+                const imageElements = grid.querySelectorAll('img[data-fallback-label]')
+                imageElements.forEach((img) => {
+                    img.addEventListener('error', () => {
+                        const label = img.getAttribute('data-fallback-label') || 'Product'
+                        const width = Number(img.getAttribute('data-fallback-width') || 300)
+                        const height = Number(img.getAttribute('data-fallback-height') || 200)
+                        img.src = getFallbackImage(label, width, height)
+                    }, { once: true })
+                })
             }
 
             const applyFilters = () => {
@@ -266,6 +276,30 @@
 
             window.viewProduct = viewProduct
             window.applyFilters = applyFilters
+
+            const productsGrid = document.getElementById('productsGrid')
+            if (productsGrid) {
+                productsGrid.addEventListener('click', (event) => {
+                    const addToCartButton = event.target.closest('.add-to-cart-btn')
+                    if (addToCartButton) {
+                        event.stopPropagation()
+                        const id = Number(addToCartButton.getAttribute('data-product-id'))
+                        const selectedProduct = products.find(pr => pr.id === id)
+                        if (selectedProduct) {
+                            addToCart(selectedProduct)
+                        }
+                        return
+                    }
+
+                    const productCard = event.target.closest('.product-card[data-product-id]')
+                    if (productCard) {
+                        const id = Number(productCard.getAttribute('data-product-id'))
+                        if (id) {
+                            viewProduct(id)
+                        }
+                    }
+                })
+            }
 
             searchInputEl.addEventListener('input', applyFilters)
             sortFilterEl.addEventListener('change', applyFilters)

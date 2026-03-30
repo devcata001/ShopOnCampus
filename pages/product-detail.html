@@ -131,7 +131,7 @@
                     document.getElementById('productDetail').innerHTML = `
                     <div class="col-md-6">
                         <img src="${product.image}" class="img-fluid w-100" alt="${product.name}" 
-                             style="height: 500px; object-fit: cover;" onerror="this.src=getFallbackImage('Product', 700, 500)">
+                             style="height: 500px; object-fit: cover;" data-fallback-label="Product" data-fallback-width="700" data-fallback-height="500">
                     </div>
                     <div class="col-md-6 detail-section">
                         <h2 class="mb-3">${product.name}</h2>
@@ -149,10 +149,10 @@
                         </div>
                         
                         <div class="d-grid gap-2 mb-4">
-                            <button onclick="addProductToCart()" class="btn btn-success btn-lg">
+                            <button id="addToCartBtn" class="btn btn-success btn-lg">
                                 <i class="bi bi-cart-plus"></i> Add to Cart
                             </button>
-                            <button onclick="window.location.href='products.html'" class="btn btn-outline-secondary">
+                            <button id="backToProductsBtn" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-left"></i> Back to Products
                             </button>
                         </div>
@@ -170,8 +170,8 @@
                     if (related.length > 0) {
                         document.getElementById('relatedProducts').innerHTML = related.map(p => `
                         <div class="col-md-4">
-                            <div class="card related-card h-100" onclick="window.location.href='product-detail.html?id=${p.id}'" style="cursor: pointer;">
-                                <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;" onerror="this.src=getFallbackImage('Product', 300, 200)">
+                            <div class="card related-card h-100" data-related-id="${p.id}" style="cursor: pointer;">
+                                <img src="${p.image}" class="card-img-top" alt="${p.name}" style="height: 200px; object-fit: cover;" data-fallback-label="Product" data-fallback-width="300" data-fallback-height="200">
                                 <div class="card-body">
                                     <h6 class="card-title">${p.name}</h6>
                                     <p class="text-success fw-bold mb-2">₦${p.price.toLocaleString()}</p>
@@ -180,6 +180,20 @@
                             </div>
                         </div>
                     `).join('')
+
+                        const relatedContainer = document.getElementById('relatedProducts')
+                        if (relatedContainer) {
+                            relatedContainer.addEventListener('click', (event) => {
+                                const card = event.target.closest('.related-card[data-related-id]')
+                                if (!card) {
+                                    return
+                                }
+                                const relatedId = Number(card.getAttribute('data-related-id'))
+                                if (relatedId) {
+                                    window.location.href = `product-detail.html?id=${relatedId}`
+                                }
+                            })
+                        }
                     } else {
                         document.getElementById('relatedProducts').innerHTML = `
                         <div class="col-12 text-center text-muted">
@@ -197,6 +211,28 @@
                     </div>
                 `
                 }
+
+                const detailImages = document.querySelectorAll('#productDetail img[data-fallback-label], #relatedProducts img[data-fallback-label]')
+                detailImages.forEach((img) => {
+                    img.addEventListener('error', () => {
+                        const label = img.getAttribute('data-fallback-label') || 'Product'
+                        const width = Number(img.getAttribute('data-fallback-width') || 300)
+                        const height = Number(img.getAttribute('data-fallback-height') || 200)
+                        img.src = getFallbackImage(label, width, height)
+                    }, { once: true })
+                })
+
+                const addToCartBtn = document.getElementById('addToCartBtn')
+                if (addToCartBtn) {
+                    addToCartBtn.addEventListener('click', addProductToCart)
+                }
+
+                const backToProductsBtn = document.getElementById('backToProductsBtn')
+                if (backToProductsBtn) {
+                    backToProductsBtn.addEventListener('click', () => {
+                        window.location.href = 'products.html'
+                    })
+                }
             }
 
             const addProductToCart = () => {
@@ -210,7 +246,6 @@
                 }
             }
 
-            window.addProductToCart = addProductToCart
         })()
 
     </script>
