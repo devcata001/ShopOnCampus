@@ -24,7 +24,7 @@
         <div class="auth-form-section">
             <div class="auth-form-container">
                 <div class="text-center mb-4">
-                    <img src="../assets/lautech.png" alt="LAUTECH Logo" class="auth-logo mb-3">
+                    <img src="../assets/lautech.png" alt="InsideLAUTECH logo" class="auth-logo mb-3">
                     <h2 class="form-title">Sign In</h2>
                     <p class="form-subtitle">Welcome back to InsideLAUTECH</p>
                 </div>
@@ -210,7 +210,7 @@
                 })
             })
 
-            const remembered = localStorage.getItem('insideLAUTECH_rememberedEmail')
+            const remembered = localStorage.getItem('insidelautech_remembered_email') || localStorage.getItem('insideLAUTECH_rememberedEmail')
             if (remembered) {
                 emailInput.value = remembered
                 rememberMe.checked = true
@@ -286,8 +286,10 @@
                 localStorage.setItem('insidelautech_session', JSON.stringify(session))
 
                 if (rememberMe.checked) {
-                    localStorage.setItem('insideLAUTECH_rememberedEmail', normalizedEmail)
+                    localStorage.setItem('insidelautech_remembered_email', normalizedEmail)
+                    localStorage.removeItem('insideLAUTECH_rememberedEmail')
                 } else {
+                    localStorage.removeItem('insidelautech_remembered_email')
                     localStorage.removeItem('insideLAUTECH_rememberedEmail')
                 }
 

@@ -5,6 +5,39 @@ if (localStorage.insidelautech_cart) {
 
 const PAYSTACK_PUBLIC_KEY = localStorage.getItem('insidelautech_paystack_test_key') || 'pk_test_f56cc9f27a927af6dadbc4653123594a385a3624'
 
+const ensurePaystackScript = (() => {
+    let loadingPromise = null
+
+    return () => {
+        if (window.PaystackPop) {
+            return Promise.resolve()
+        }
+
+        if (loadingPromise) {
+            return loadingPromise
+        }
+
+        loadingPromise = new Promise((resolve, reject) => {
+            const existingScript = document.querySelector('script[data-paystack-inline="true"]')
+            if (existingScript) {
+                existingScript.addEventListener('load', () => resolve(), { once: true })
+                existingScript.addEventListener('error', () => reject(new Error('Unable to load Paystack script.')), { once: true })
+                return
+            }
+
+            const script = document.createElement('script')
+            script.src = 'https://js.paystack.co/v1/inline.js'
+            script.async = true
+            script.dataset.paystackInline = 'true'
+            script.onload = () => resolve()
+            script.onerror = () => reject(new Error('Unable to load Paystack script.'))
+            document.head.appendChild(script)
+        })
+
+        return loadingPromise
+    }
+})()
+
 const ensureToastContainer = () => {
     let container = document.getElementById('toastContainer')
     if (!container) {
@@ -193,7 +226,13 @@ const createOrder = (items, total, userId, userName, userEmail, paymentRef) => {
 
 const payWithPaystack = ({ amount, email, reference, metadata, onSuccess, onCancel }) => {
     if (!window.PaystackPop) {
-        showToast('Paystack script is not loaded on this page.', 'error')
+        ensurePaystackScript()
+            .then(() => {
+                payWithPaystack({ amount, email, reference, metadata, onSuccess, onCancel })
+            })
+            .catch(() => {
+                showToast('Unable to load Paystack right now. Check your internet and try again.', 'error')
+            })
         return
     }
 
