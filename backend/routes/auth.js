@@ -5,26 +5,69 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-});
+/**
+ * Email transporter setup with fallback for Render
+ * Render blocks SMTP on port 587/465 by default
+ * This setup attempts standard SMTP first, then falls back to OAuth2
+ */
+let transporter;
+
+const isHostedEnvironment =
+  Boolean(process.env.RENDER) || Boolean(process.env.RENDER_EXTERNAL_URL);
+
+// Primary: Standard SMTP (works on localhost)
+const createSmtpTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
+};
+
+// Fallback: OAuth2 (works on Render without port restrictions)
+const createOAuth2Transporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      type: "OAuth2",
+      user: process.env.EMAIL_USER,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+      accessToken: process.env.GOOGLE_ACCESS_TOKEN,
+    },
+  });
+};
+
+// Initialize transporter
+transporter = createSmtpTransporter();
 
 // Verify transporter connection and log the result
 transporter.verify((error, success) => {
   if (error) {
-    console.error("[CRITICAL] Email service verification failed:", error.message);
-    console.error("[CRITICAL] Gmail Credentials Issue - Check EMAIL_USER and EMAIL_APP_PASSWORD in .env");
+    console.error("[WARNING] SMTP Email service verification failed:", error.message);
+    console.warn("[INFO] SMTP may be blocked on this platform. Standard setup is for localhost.");
+
+    if (isHostedEnvironment && process.env.GOOGLE_CLIENT_ID) {
+      console.log("[INFO] Attempting OAuth2 fallback for Render...");
+      transporter = createOAuth2Transporter();
+      transporter.verify((oauthError, oauthSuccess) => {
+        if (oauthError) {
+          console.error("[ERROR] OAuth2 Email service also failed:", oauthError.message);
+        } else {
+          console.log("[SUCCESS] Email service ready via OAuth2 (Render compatible)");
+        }
+      });
+    } else if (isHostedEnvironment) {
+      console.error("[CRITICAL] Running on Render but OAuth2 credentials missing!");
+      console.error("[FIX] Add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN to .env");
+    }
   } else {
-    console.log("[SUCCESS] Email service is ready and operational");
+    console.log("[SUCCESS] Email service is ready and operational (SMTP)");
   }
 });
-
-const isHostedEnvironment =
-  Boolean(process.env.RENDER) || Boolean(process.env.RENDER_EXTERNAL_URL);
 
 const frontendUrl = isHostedEnvironment
   ? process.env.FRONTEND_URL || "https://shoponcampus.vercel.app"
