@@ -22,10 +22,32 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Rate limiting for auth endpoints
-const authLimiter = rateLimit({
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs (login attempts)
-  message: "Too many login attempts, please try again later",
+  max: 8,
+  message: {
+    error: "Too many login attempts, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const signupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    error: "Too many signup attempts, please wait a bit and try again.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const resendVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    error: "Too many resend attempts, please try again later.",
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -38,9 +60,9 @@ const generalLimiter = rateLimit({
 });
 
 // Apply rate limiting
-app.use("/api/auth/login", authLimiter);
-app.use("/api/auth/signup", authLimiter);
-app.use("/api/auth/resend-verification", authLimiter);
+app.use("/api/auth/login", loginLimiter);
+app.use("/api/auth/signup", signupLimiter);
+app.use("/api/auth/resend-verification", resendVerificationLimiter);
 
 // Body parser middleware
 app.use(express.json({ limit: "10kb" })); // Limit body size

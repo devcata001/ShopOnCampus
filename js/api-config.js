@@ -81,7 +81,11 @@ async function makeApiRequest(endpoint, options = {}) {
 
     try {
         const response = await fetch(url, requestConfig);
-        const data = await response.json();
+        const contentType = response.headers.get('content-type') || '';
+        const isJson = contentType.includes('application/json');
+        const data = isJson
+            ? await response.json()
+            : { error: await response.text() };
 
         if (!response.ok) {
             const error = new Error(data.error || 'API request failed');
