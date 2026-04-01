@@ -851,6 +851,7 @@ html {
 .toast-custom {
   min-width: 320px;
   max-width: 90vw;
+  width: min(560px, 90vw);
   padding: 1.25rem 1.75rem;
   border-radius: 14px;
   color: #fff;
@@ -861,12 +862,18 @@ html {
   font-weight: 500;
   pointer-events: auto;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   line-height: 1.5;
+}
+
+.toast-message {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .toast-custom.show {
@@ -930,9 +937,9 @@ html {
     top: 0.75rem;
     left: 50%;
     right: auto;
-    width: 94vw;
+    width: 96vw;
     min-width: 0;
-    max-width: 94vw;
+    max-width: 96vw;
     padding: 0;
     gap: 0.5rem;
   }

@@ -3,7 +3,6 @@ const router = express.Router();
 const Product = require("../models/Product");
 const jwt = require("jsonwebtoken");
 
-// Auth middleware
 function auth(req, res, next) {
   const header = req.headers["authorization"];
   const bearerToken = header && header.startsWith("Bearer ")
@@ -25,7 +24,6 @@ function auth(req, res, next) {
   });
 }
 
-// Get all products (public)
 router.get("/", async (req, res) => {
   try {
     const products = await Product.find().select("-__v");
@@ -36,7 +34,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get single product (public)
 router.get("/:id", async (req, res) => {
   try {
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -54,12 +51,10 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create product (protected - admin only ideally)
 router.post("/", auth, async (req, res) => {
   try {
     const { name, description, price, category } = req.body;
 
-    // Input validation
     if (!name || !price) {
       return res.status(400).json({
         error: "Product name and price are required",
@@ -85,7 +80,6 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// Update product (protected)
 router.put("/:id", auth, async (req, res) => {
   try {
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -94,7 +88,6 @@ router.put("/:id", auth, async (req, res) => {
 
     const { name, description, price, category } = req.body;
 
-    // Validate input
     if (price !== undefined) {
       if (typeof price !== "number" || price < 0) {
         return res.status(400).json({ error: "Invalid price" });
@@ -123,7 +116,6 @@ router.put("/:id", auth, async (req, res) => {
   }
 });
 
-// Delete product (protected)
 router.delete("/:id", auth, async (req, res) => {
   try {
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {

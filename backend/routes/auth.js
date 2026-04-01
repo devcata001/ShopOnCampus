@@ -13,10 +13,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const frontendUrl =
-  process.env.NODE_ENV === "production"
-    ? process.env.FRONTEND_URL || "https://insidelautech.vercel.app"
-    : process.env.FRONTEND_URL_DEV || "http://localhost:3000";
+const isHostedEnvironment =
+  Boolean(process.env.RENDER) || Boolean(process.env.RENDER_EXTERNAL_URL);
+
+const frontendUrl = isHostedEnvironment
+  ? process.env.FRONTEND_URL || "https://insidelautech.vercel.app"
+  : process.env.FRONTEND_URL_DEV ||
+  process.env.FRONTEND_URL ||
+  "http://localhost:3000";
 const isProduction = process.env.NODE_ENV === "production";
 
 const buildVerificationEmailHtml = (name, verifyUrl) => `
@@ -35,7 +39,15 @@ const buildVerificationEmailHtml = (name, verifyUrl) => `
   </div>
 `;
 
-// Input validation helpers
+const sendVerificationEmail = async ({ email, name, verifyUrl }) => {
+  await transporter.sendMail({
+    from: `"InsideLAUTECH" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Verify your InsideLAUTECH account",
+    html: buildVerificationEmailHtml(name, verifyUrl),
+  });
+};
+
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -45,12 +57,10 @@ const validatePassword = (password) => {
   return password && password.length >= 8;
 };
 
-// Signup with email verification
 router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Input validation
     if (!name || !email || !password) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -65,13 +75,11 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    // Check if user exists
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(409).json({ error: "Email already in use" });
     }
 
-    // Hash password with secure rounds
     const hashed = await bcrypt.hash(password, 12);
     const user = new User({
       name: name.trim(),
@@ -81,33 +89,19 @@ router.post("/signup", async (req, res) => {
     });
     await user.save();
 
-    // Generate verification token with short expiry
     const verifyToken = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
-    // Send verification email
     const verifyUrl = `${frontendUrl}/pages/verify.html?token=${encodeURIComponent(verifyToken)}`;
-    try {
-      await transporter.sendMail({
-        from: `"InsideLAUTECH" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: "Verify your InsideLAUTECH account",
-        html: buildVerificationEmailHtml(name, verifyUrl),
-      });
-    } catch (emailErr) {
-      console.error("Email sending failed:", emailErr);
-      // Delete user if email fails
-      await User.deleteOne({ _id: user._id });
-      return res.status(500).json({
-        error: "Failed to send verification email. Please try again.",
-      });
-    }
-
     res.status(201).json({
       message: "Account created. Please check your email to verify.",
+    });
+
+    sendVerificationEmail({ email, name, verifyUrl }).catch((emailErr) => {
+      console.error("Email sending failed after signup:", emailErr);
     });
   } catch (err) {
     console.error("Signup error:", err);
@@ -115,7 +109,6 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// Email verification route
 router.get("/verify", async (req, res) => {
   try {
     const { token } = req.query;
@@ -157,19 +150,16 @@ router.get("/verify", async (req, res) => {
   }
 });
 
-// Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Input validation
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
 
-    // Don't reveal if email exists (security best practice)
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
@@ -179,7 +169,6 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Check if email is verified
     if (!user.verified) {
       return res.status(403).json({
         error: "Email not verified",
@@ -189,7 +178,6 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
@@ -223,7 +211,6 @@ router.post("/logout", (req, res) => {
   return res.json({ message: "Logout successful" });
 });
 
-// Resend verification email
 router.post("/resend-verification", async (req, res) => {
   try {
     const { email } = req.body;
@@ -238,7 +225,6 @@ router.post("/resend-verification", async (req, res) => {
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      // Don't reveal if user exists
       return res.status(200).json({
         message: "If the email exists, a verification link will be sent.",
       });
@@ -250,21 +236,18 @@ router.post("/resend-verification", async (req, res) => {
       });
     }
 
-    // Generate new verification token
     const verifyToken = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
-    // Send verification email
     const verifyUrl = `${frontendUrl}/pages/verify.html?token=${encodeURIComponent(verifyToken)}`;
     try {
-      await transporter.sendMail({
-        from: `"InsideLAUTECH" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: "Verify your InsideLAUTECH account",
-        html: buildVerificationEmailHtml(user.name, verifyUrl),
+      await sendVerificationEmail({
+        email,
+        name: user.name,
+        verifyUrl,
       });
     } catch (emailErr) {
       console.error("Email sending failed:", emailErr);
@@ -284,7 +267,6 @@ router.post("/resend-verification", async (req, res) => {
   }
 });
 
-// Auth middleware
 function auth(req, res, next) {
   const header = req.headers["authorization"];
   const bearerToken = header && header.startsWith("Bearer ")
@@ -306,7 +288,6 @@ function auth(req, res, next) {
   });
 }
 
-// Protected route example
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");

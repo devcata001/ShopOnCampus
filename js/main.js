@@ -90,7 +90,7 @@ const showToast = (message, type = "info") => {
   const toastTypeClass = typeClassMap[type] || typeClassMap.info;
   toast.className = `toast-custom ${toastTypeClass}`;
   toast.innerHTML = `
-        <span>${message}</span>
+      <span class="toast-message">${message}</span>
         <button type="button" class="toast-close" aria-label="Close notification">&times;</button>
     `;
 

@@ -9,10 +9,8 @@ const mongoSanitize = require("express-mongo-sanitize");
 
 const app = express();
 
-// Security Middleware
-app.use(helmet()); // Add security headers
+app.use(helmet());
 
-// CORS configuration - restrict to specific origins
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:3000"],
   credentials: true,
@@ -21,9 +19,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Rate limiting for auth endpoints
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 8,
   message: {
     error: "Too many login attempts, please try again later.",
@@ -59,23 +56,17 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Apply rate limiting
 app.use("/api/auth/login", loginLimiter);
 app.use("/api/auth/signup", signupLimiter);
 app.use("/api/auth/resend-verification", resendVerificationLimiter);
 
-// Body parser middleware
-app.use(express.json({ limit: "10kb" })); // Limit body size
+app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ limit: "10kb", extended: true }));
 app.use(cookieParser());
 
-// Data sanitization against injection
 app.use(mongoSanitize());
-
-// General rate limiting for other endpoints
 app.use(generalLimiter);
 
-// Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -84,27 +75,21 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Routes placeholder
 app.get("/", (req, res) => {
   res.send("Backend API is running");
 });
 
-// Auth routes
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
-// Product routes
 const productRoutes = require("./routes/products");
 app.use("/api/products", productRoutes);
 
-// Order routes
 const orderRoutes = require("./routes/orders");
 app.use("/api/orders", orderRoutes);
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  // Don't expose internal error details to client
   res.status(err.status || 500).json({
     error: "An error occurred",
     message: process.env.NODE_ENV === "development" ? err.message : undefined,
