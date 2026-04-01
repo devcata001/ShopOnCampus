@@ -49,41 +49,68 @@ const sendVerificationEmail = async ({ email, name, verifyUrl }) => {
 };
 
 const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   return emailRegex.test(email);
 };
 
-const validatePassword = (password) => {
-  return password && password.length >= 8;
+const validateName = (name) => {
+  const nameRegex = /^[A-Za-z][A-Za-z\s.'-]{1,79}$/;
+  return nameRegex.test(name);
 };
+
+const validatePassword = (password) => {
+  const printableAsciiRegex = /^[\x20-\x7E]{8,128}$/;
+  return printableAsciiRegex.test(password);
+};
+
+const containsEmoji = (value) => /\p{Extended_Pictographic}/u.test(value);
 
 router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const trimmedName = String(name || "").trim();
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const rawPassword = String(password || "");
 
-    if (!name || !email || !password) {
+    if (!trimmedName || !normalizedEmail || !rawPassword) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    if (!validateEmail(email)) {
-      return res.status(400).json({ error: "Invalid email format" });
-    }
-
-    if (!validatePassword(password)) {
+    if (
+      containsEmoji(trimmedName) ||
+      containsEmoji(normalizedEmail) ||
+      containsEmoji(rawPassword)
+    ) {
       return res.status(400).json({
-        error: "Password must be at least 8 characters long",
+        error: "Emojis are not allowed in signup fields.",
       });
     }
 
-    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (!validateName(trimmedName)) {
+      return res.status(400).json({
+        error: "Name contains unsupported characters.",
+      });
+    }
+
+    if (!validateEmail(normalizedEmail)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    if (!validatePassword(rawPassword)) {
+      return res.status(400).json({
+        error: "Password must use standard characters and be 8-128 chars.",
+      });
+    }
+
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(409).json({ error: "Email already in use" });
     }
 
-    const hashed = await bcrypt.hash(password, 12);
+    const hashed = await bcrypt.hash(rawPassword, 12);
     const user = new User({
-      name: name.trim(),
-      email: email.toLowerCase(),
+      name: trimmedName,
+      email: normalizedEmail,
       password: hashed,
       verified: false,
     });
@@ -100,7 +127,11 @@ router.post("/signup", async (req, res) => {
       message: "Account created. Please check your email to verify.",
     });
 
-    sendVerificationEmail({ email, name, verifyUrl }).catch((emailErr) => {
+    sendVerificationEmail({
+      email: normalizedEmail,
+      name: trimmedName,
+      verifyUrl,
+    }).catch((emailErr) => {
       console.error("Email sending failed after signup:", emailErr);
     });
   } catch (err) {
@@ -153,18 +184,36 @@ router.get("/verify", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const rawPassword = String(password || "");
 
-    if (!email || !password) {
+    if (!normalizedEmail || !rawPassword) {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    if (containsEmoji(normalizedEmail) || containsEmoji(rawPassword)) {
+      return res.status(400).json({
+        error: "Emojis are not allowed in login fields.",
+      });
+    }
+
+    if (!validateEmail(normalizedEmail)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    if (!validatePassword(rawPassword)) {
+      return res.status(400).json({
+        error: "Password contains unsupported characters.",
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(rawPassword, user.password);
     if (!valid) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
