@@ -3,6 +3,102 @@ if (localStorage.shoponcampus_cart) {
   cart = JSON.parse(localStorage.getItem("shoponcampus_cart"));
 }
 
+const saveCartLocal = () => {
+  localStorage.setItem("shoponcampus_cart", JSON.stringify(cart));
+};
+
+const sanitizeCartItems = (items) => {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item) => {
+      const productId = String(item.id || item.productId || "").trim();
+      const name = String(item.name || "").trim();
+      const quantity = Number(item.quantity);
+      const price = Number(item.price);
+
+      if (!productId || !name || !Number.isFinite(quantity) || !Number.isFinite(price)) {
+        return null;
+      }
+
+      if (quantity < 1 || price < 0) {
+        return null;
+      }
+
+      return {
+        id: productId,
+        productId,
+        name,
+        price,
+        quantity,
+        category: String(item.category || "").trim(),
+        image: String(item.image || "").trim(),
+        description: String(item.description || "").trim(),
+      };
+    })
+    .filter(Boolean);
+};
+
+const canUseCartApi = () => {
+  return (
+    typeof makeApiRequest === "function" &&
+    Boolean(window.API_CONFIG?.endpoints?.cart?.get) &&
+    Boolean(window.API_CONFIG?.endpoints?.cart?.upsert)
+  );
+};
+
+const syncCartToBackend = async () => {
+  const user = checkSession();
+  if (!user || !canUseCartApi()) {
+    return;
+  }
+
+  await makeApiRequest(API_CONFIG.endpoints.cart.upsert, {
+    method: "PUT",
+    includeAuth: true,
+    body: {
+      items: sanitizeCartItems(cart),
+    },
+  });
+};
+
+const syncCartFromBackend = async () => {
+  const user = checkSession();
+  if (!user || !canUseCartApi()) {
+    return cart;
+  }
+
+  try {
+    const payload = await makeApiRequest(API_CONFIG.endpoints.cart.get, {
+      method: "GET",
+      includeAuth: true,
+    });
+
+    const serverItems = sanitizeCartItems(payload?.items || []);
+    cart = serverItems;
+    saveCartLocal();
+    updateCartCount();
+  } catch (err) {
+    console.error("Cart sync fetch failed, using local cart:", err);
+  }
+
+  return cart;
+};
+
+const saveCartState = ({ sync = true } = {}) => {
+  cart = sanitizeCartItems(cart);
+  saveCartLocal();
+  updateCartCount();
+
+  if (sync) {
+    syncCartToBackend().catch((err) => {
+      console.error("Cart sync save failed:", err);
+    });
+  }
+};
+
 const PAYSTACK_PUBLIC_KEY =
   localStorage.getItem("shoponcampus_paystack_test_key") ||
   "pk_test_f56cc9f27a927af6dadbc4653123594a385a3624";
@@ -150,7 +246,7 @@ const addToCart = (product) => {
 
   if (!found) {
     const newItem = {
-      id: product.id,
+      id: String(product.id),
       name: product.name,
       price: product.price,
       image: product.image,
@@ -161,31 +257,31 @@ const addToCart = (product) => {
     cart.push(newItem);
   }
 
-  localStorage.setItem("shoponcampus_cart", JSON.stringify(cart));
-  updateCartCount();
+  saveCartState();
   showToast(`${product.name} added to cart`, "success");
 };
 
 const removeFromCart = (productId) => {
+  const normalizedProductId = String(productId);
   let newCart = [];
   for (let i = 0; i < cart.length; i++) {
-    if (cart[i].id !== productId) {
+    if (String(cart[i].id) !== normalizedProductId) {
       newCart.push(cart[i]);
     }
   }
   cart = newCart;
-  localStorage.setItem("shoponcampus_cart", JSON.stringify(cart));
-  updateCartCount();
+  saveCartState();
 };
 
 const updateQuantity = (productId, newQuantity) => {
+  const normalizedProductId = String(productId);
   for (let i = 0; i < cart.length; i++) {
-    if (cart[i].id === productId) {
+    if (String(cart[i].id) === normalizedProductId) {
       if (newQuantity <= 0) {
         removeFromCart(productId);
       } else {
         cart[i].quantity = newQuantity;
-        localStorage.setItem("shoponcampus_cart", JSON.stringify(cart));
+        saveCartState();
       }
       break;
     }
@@ -615,10 +711,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   ensureToastContainer();
-  updateCartCount();
   updateNav();
   highlightCurrentNavLink();
   setupNavbarBehavior();
+  updateCartCount();
+
+  syncCartFromBackend().catch(() => null);
 });
 
 window.showToast = showToast;
@@ -627,3 +725,6 @@ window.setPaystackTestKey = setPaystackTestKey;
 window.getFallbackImage = getFallbackImage;
 window.createOrder = createOrder;
 window.generateDeliveryCode = generateDeliveryCode;
+window.syncCartFromBackend = syncCartFromBackend;
+window.syncCartToBackend = syncCartToBackend;
+window.saveCartState = saveCartState;

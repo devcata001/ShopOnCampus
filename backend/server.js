@@ -141,6 +141,9 @@ app.use("/api/products", productRoutes);
 const orderRoutes = require("./routes/orders");
 app.use("/api/orders", orderRoutes);
 
+const cartRoutes = require("./routes/cart");
+app.use("/api/cart", cartRoutes);
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({

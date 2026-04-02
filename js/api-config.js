@@ -42,6 +42,10 @@ const API_CONFIG = {
             getOne: '/api/orders/{id}',
             create: '/api/orders',
         },
+        cart: {
+            get: '/api/cart',
+            upsert: '/api/cart',
+        },
     },
 
     // Timeout for requests (ms)
