@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
-const Product = require("../models/Product");
 const jwt = require("jsonwebtoken");
+
+const generateDeliveryCode = () => {
+  return String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+};
 
 // Auth middleware
 function auth(req, res, next) {
@@ -29,7 +32,7 @@ function auth(req, res, next) {
 // Create order (protected)
 router.post("/", auth, async (req, res) => {
   try {
-    const { products } = req.body;
+    const { products, paymentRef } = req.body;
 
     // Input validation
     if (!Array.isArray(products) || products.length === 0) {
@@ -38,40 +41,38 @@ router.post("/", auth, async (req, res) => {
       });
     }
 
-    // Validate product items
+    // Validate and sanitize product snapshots from cart
+    const sanitizedProducts = [];
+    let total = 0;
+
     for (const item of products) {
-      if (!item.product || !item.quantity) {
+      const quantity = Number(item.quantity);
+      const price = Number(item.price);
+
+      if (!item.name || !Number.isFinite(quantity) || !Number.isFinite(price)) {
         return res.status(400).json({
-          error: "Each product must have ID and quantity",
+          error: "Each product must include name, price, and quantity",
         });
       }
 
-      if (typeof item.quantity !== "number" || item.quantity < 1) {
+      if (quantity < 1) {
         return res.status(400).json({ error: "Invalid product quantity" });
       }
 
-      // Verify product exists
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return res.status(400).json({
-          error: `Product not found: ${item.product}`,
-        });
+      if (price < 0) {
+        return res.status(400).json({ error: "Invalid product price" });
       }
-    }
 
-    // Calculate total based on current prices
-    let total = 0;
-    const validatedProducts = [];
-
-    for (const item of products) {
-      const product = await Product.findById(item.product);
-      const subtotal = product.price * item.quantity;
+      const subtotal = price * quantity;
       total += subtotal;
 
-      validatedProducts.push({
-        product: item.product,
-        quantity: item.quantity,
-        price: product.price, // Store price at time of order
+      sanitizedProducts.push({
+        productId: String(item.id || item.product || ""),
+        name: String(item.name || "").trim(),
+        category: String(item.category || "").trim(),
+        image: String(item.image || "").trim(),
+        quantity,
+        price,
       });
     }
 
@@ -84,8 +85,10 @@ router.post("/", auth, async (req, res) => {
 
     const order = new Order({
       user: req.user.id,
-      products: validatedProducts,
+      products: sanitizedProducts,
       total,
+      paymentRef: String(paymentRef || "").trim(),
+      deliveryCode: generateDeliveryCode(),
     });
 
     await order.save();
@@ -100,7 +103,6 @@ router.post("/", auth, async (req, res) => {
 router.get("/", auth, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id })
-      .populate("products.product")
       .sort({ createdAt: -1 });
 
     res.json(orders);
@@ -120,7 +122,7 @@ router.get("/:id", auth, async (req, res) => {
     const order = await Order.findOne({
       _id: req.params.id,
       user: req.user.id, // Ensure user can only access own orders
-    }).populate("products.product");
+    });
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" });

@@ -159,6 +159,7 @@
 
   <script src="../data/products-data.js"></script>
   <script src="../data/price-overrides.js"></script>
+  <script src="../js/api-config.js"></script>
   <script src="../js/main.js"></script>
   <script src="https://js.paystack.co/v1/inline.js"></script>
   <script>
@@ -347,13 +348,13 @@
             },
           ],
         },
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           showToast(
             `Payment successful! Total: ₦${totalAmount.toLocaleString()}`,
             "success",
           );
 
-          createOrder(
+          await createOrder(
             cartItemsCopy,
             totalAmount,
             user.email,

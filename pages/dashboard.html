@@ -248,6 +248,7 @@
 
   <script src="../data/products-data.js"></script>
   <script src="../data/price-overrides.js"></script>
+  <script src="../js/api-config.js"></script>
   <script src="../js/main.js"></script>
   <script>
     const user = checkSession();
@@ -280,16 +281,63 @@
             <i class="bi bi-info-circle"></i> Member since ${memberSinceDate.toLocaleDateString()}
         `;
 
-    const updateTotalOrders = () => {
-      const allOrders = JSON.parse(
-        localStorage.getItem("shoponcampus_orders") || "[]",
-      );
-      const userOrders = allOrders
+    let dashboardOrders = [];
+
+    const mapApiOrder = (order) => {
+      const items = Array.isArray(order.products)
+        ? order.products.map((item) => ({
+          id: item.productId || item.product || "",
+          name: item.name || "Product",
+          price: Number(item.price) || 0,
+          quantity: Number(item.quantity) || 1,
+          category: item.category || "",
+          image: item.image || "",
+        }))
+        : [];
+
+      return {
+        orderId: order._id || `ORD-${Date.now()}`,
+        userId: user.email,
+        userName: user.name,
+        items,
+        total: Number(order.total) || 0,
+        paymentRef: order.paymentRef || "",
+        deliveryCode: order.deliveryCode || "----",
+        status: order.status || "pending",
+        createdAt: order.createdAt || new Date().toISOString(),
+      };
+    };
+
+    const fetchUserOrders = async () => {
+      if (typeof makeApiRequest === "function" && window.API_CONFIG?.endpoints?.orders?.list) {
+        try {
+          const apiOrders = await makeApiRequest(API_CONFIG.endpoints.orders.list, {
+            method: "GET",
+            includeAuth: true,
+          });
+          const mapped = (Array.isArray(apiOrders) ? apiOrders : []).map(mapApiOrder);
+          dashboardOrders = mapped.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+          return dashboardOrders;
+        } catch (err) {
+          console.error("Failed to fetch orders from API, using local fallback:", err);
+        }
+      }
+
+      const allOrders = JSON.parse(localStorage.getItem("shoponcampus_orders") || "[]");
+      dashboardOrders = allOrders
         .filter((order) => order.userId === user.email)
         .sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         );
+      return dashboardOrders;
+    };
+
+    const updateTotalOrders = async () => {
+      const userOrders = await fetchUserOrders();
       const totalOrdersElement = document.getElementById("totalOrders");
       if (totalOrdersElement) {
         totalOrdersElement.textContent = userOrders.length;
@@ -298,13 +346,8 @@
 
     updateTotalOrders();
 
-    const loadUserOrders = () => {
-      const allOrders = JSON.parse(
-        localStorage.getItem("shoponcampus_orders") || "[]",
-      );
-      const userOrders = allOrders.filter(
-        (order) => order.userId === user.email,
-      );
+    const loadUserOrders = async () => {
+      const userOrders = await fetchUserOrders();
       const ordersContainer = document.getElementById("ordersContainer");
 
       if (!ordersContainer) return;
@@ -358,10 +401,7 @@
     };
 
     const viewReceipt = (orderId) => {
-      const allOrders = JSON.parse(
-        localStorage.getItem("shoponcampus_orders") || "[]",
-      );
-      const order = allOrders.find((o) => o.orderId === orderId);
+      const order = dashboardOrders.find((o) => o.orderId === orderId);
 
       if (!order) {
         alert("Order not found");

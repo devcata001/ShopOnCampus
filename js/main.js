@@ -261,7 +261,66 @@ const generateDeliveryCode = () => {
   return code;
 };
 
-const createOrder = (items, total, userId, userName, userEmail, paymentRef) => {
+const mapApiOrderToLegacyShape = (order, userName, userEmail, fallbackRef = "") => {
+  const mappedItems = Array.isArray(order.products)
+    ? order.products.map((item) => ({
+      id: item.productId || item.product || "",
+      name: item.name || "Product",
+      price: Number(item.price) || 0,
+      quantity: Number(item.quantity) || 1,
+      category: item.category || "",
+      image: item.image || "",
+    }))
+    : [];
+
+  return {
+    orderId: order._id || `ORD-${Date.now()}`,
+    userId: userEmail,
+    userName: userName || "Student",
+    items: mappedItems,
+    total: Number(order.total) || 0,
+    paymentRef: order.paymentRef || fallbackRef,
+    deliveryCode: order.deliveryCode || generateDeliveryCode(),
+    status: order.status || "pending",
+    createdAt: order.createdAt || new Date().toISOString(),
+    deliveredAt: null,
+  };
+};
+
+const createOrder = async (
+  items,
+  total,
+  userId,
+  userName,
+  userEmail,
+  paymentRef,
+) => {
+  const normalizedItems = (Array.isArray(items) ? items : []).map((item) => ({
+    id: item.id,
+    name: item.name,
+    price: Number(item.price) || 0,
+    quantity: Number(item.quantity) || 1,
+    category: item.category || "",
+    image: item.image || "",
+  }));
+
+  if (typeof makeApiRequest === "function" && window.API_CONFIG?.endpoints?.orders?.create) {
+    try {
+      const apiOrder = await makeApiRequest(API_CONFIG.endpoints.orders.create, {
+        method: "POST",
+        includeAuth: true,
+        body: {
+          products: normalizedItems,
+          paymentRef,
+        },
+      });
+
+      return mapApiOrderToLegacyShape(apiOrder, userName, userEmail, paymentRef);
+    } catch (err) {
+      console.error("API order creation failed, falling back to local storage:", err);
+    }
+  }
+
   const orders = JSON.parse(
     localStorage.getItem("shoponcampus_orders") || "[]",
   );
