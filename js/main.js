@@ -236,8 +236,9 @@ const addToCart = (product) => {
   }
 
   let found = false;
+  const normalizedProductId = String(product.id);
   for (let i = 0; i < cart.length; i++) {
-    if (cart[i].id === product.id) {
+    if (String(cart[i].id) === normalizedProductId) {
       cart[i].quantity = cart[i].quantity + 1;
       found = true;
       break;
@@ -726,5 +727,6 @@ window.getFallbackImage = getFallbackImage;
 window.createOrder = createOrder;
 window.generateDeliveryCode = generateDeliveryCode;
 window.syncCartFromBackend = syncCartFromBackend;
+window.syncCartFromServer = syncCartFromBackend;
 window.syncCartToBackend = syncCartToBackend;
 window.saveCartState = saveCartState;
