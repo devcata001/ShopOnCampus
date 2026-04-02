@@ -442,6 +442,18 @@ textarea:focus-visible,
   transform: translateY(0);
 }
 
+#forgotPasswordForm .form-group {
+  margin-bottom: 1.4rem;
+}
+
+#forgotPasswordForm #resetBtn {
+  margin-top: 0.6rem;
+  min-height: 48px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 /* Divider */
 .divider {
   text-align: center;
