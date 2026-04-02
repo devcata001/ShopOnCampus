@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(helmet());
 

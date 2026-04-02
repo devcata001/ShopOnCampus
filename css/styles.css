@@ -295,7 +295,7 @@ html {
 .btn-signup {
   background-color: var(--brand-accent) !important;
   color: white !important;
-  border-radius: 999px;
+  border-radius: 10px;
   font-size: 0.98rem;
   font-weight: 700;
   line-height: 1.2;
@@ -304,6 +304,10 @@ html {
   padding: 0.62rem 1.28rem !important;
   border: 1px solid var(--brand-accent-strong);
   box-shadow: 0 8px 18px rgba(37, 99, 235, 0.28);
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .btn-signup:hover {
@@ -316,7 +320,7 @@ html {
   border: 1px solid rgba(37, 99, 235, 0.38);
   background-color: #ffffff;
   color: var(--brand-accent) !important;
-  border-radius: 999px;
+  border-radius: 10px;
   font-size: 0.98rem;
   font-weight: 700;
   line-height: 1.2;
@@ -325,6 +329,15 @@ html {
   padding: 0.62rem 1.28rem !important;
   margin-right: 0.6rem;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14);
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.btn-signin::after,
+.btn-signup::after {
+  display: none;
 }
 
 .btn-signin:hover {
@@ -351,14 +364,14 @@ html {
 
   .btn-signup {
     margin-top: 0.5rem;
-    display: inline-block;
+    display: inline-flex !important;
     min-width: 132px;
   }
 
   .btn-signin {
     margin-top: 0.5rem;
     margin-right: 0;
-    display: inline-block;
+    display: inline-flex !important;
     min-width: 132px;
   }
 }
