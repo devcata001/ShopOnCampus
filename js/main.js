@@ -77,6 +77,16 @@ const syncCartFromBackend = async () => {
     });
 
     const serverItems = sanitizeCartItems(payload?.items || []);
+    const localItems = sanitizeCartItems(cart);
+
+    if (serverItems.length === 0 && localItems.length > 0) {
+      cart = localItems;
+      saveCartLocal();
+      updateCartCount();
+      await syncCartToBackend();
+      return cart;
+    }
+
     cart = serverItems;
     saveCartLocal();
     updateCartCount();
@@ -332,6 +342,7 @@ const checkSession = () => {
 
 const logout = () => {
   const redirectToHome = () => {
+    localStorage.removeItem("shoponcampus_auth_token");
     localStorage.clear();
     if (window.location.pathname.includes("/pages/")) {
       window.location.href = "../index.html";

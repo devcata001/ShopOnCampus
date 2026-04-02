@@ -198,6 +198,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastLoginAt: new Date().toISOString(),
             };
             localStorage.setItem("shoponcampus_session", JSON.stringify(session));
+            if (result.token) {
+                localStorage.setItem("shoponcampus_auth_token", result.token);
+            }
 
             if (rememberMe.checked) {
                 localStorage.setItem("shoponcampus_remembered_email", normalizedEmail);

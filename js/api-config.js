@@ -74,6 +74,13 @@ async function makeApiRequest(endpoint, options = {}) {
         ...headers,
     };
 
+    if (includeAuth) {
+        const authToken = localStorage.getItem('shoponcampus_auth_token');
+        if (authToken) {
+            finalHeaders.Authorization = `Bearer ${authToken}`;
+        }
+    }
+
     // Prepare request config
     const requestConfig = {
         method,
